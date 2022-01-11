@@ -20,6 +20,7 @@ type scanner struct {
     line        int
     col         int
     quoted      bool
+    comment     bool
     capture     string
 }
 
@@ -50,6 +51,14 @@ func (self *scanner) next() (token, error) {
             self.col = 1
         } else {
             self.col += 1
+        }
+
+        // in comment , continue until newline
+        if self.comment == true {
+            if char == '\n' {
+                self.comment = false
+            }
+            continue
         }
 
         // in quoted, continue until unquote
@@ -92,6 +101,14 @@ func (self *scanner) next() (token, error) {
         }
 
         if unicode.IsSpace(char) {
+            continue
+        }
+
+        // start of comment
+        if char == '#' {
+            start_line  = self.line
+            start_col   = self.col
+            self.comment = true
             continue
         }
 
